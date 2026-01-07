@@ -282,9 +282,16 @@ def call_openai(messages, model, api_key):
     try:
         client = OpenAI(api_key=api_key)
         
-        # Prepare messages with system prompt
-        full_messages = [{"role": "system", "content": st.session_state.system_prompt}]
-        full_messages.extend(messages)
+        # Prepare messages with system prompt - ensure UTF-8 encoding
+        full_messages = [{"role": "system", "content": str(st.session_state.system_prompt)}]
+        
+        # Clean and encode messages properly
+        for msg in messages:
+            clean_msg = {
+                "role": str(msg["role"]),
+                "content": str(msg["content"])
+            }
+            full_messages.append(clean_msg)
         
         if st.session_state.streaming_enabled:
             response = client.chat.completions.create(
@@ -317,8 +324,8 @@ def call_anthropic(messages, model, api_key):
     try:
         client = Anthropic(api_key=api_key)
         
-        # Convert messages format for Claude
-        claude_messages = [{"role": msg["role"], "content": msg["content"]} 
+        # Convert messages format for Claude - ensure UTF-8 encoding
+        claude_messages = [{"role": str(msg["role"]), "content": str(msg["content"])} 
                           for msg in messages if msg["role"] != "system"]
         
         response = client.messages.create(
@@ -345,8 +352,8 @@ def call_google(messages, model, api_key):
             }
         )
         
-        # Use the last user message
-        last_message = messages[-1]["content"]
+        # Use the last user message - ensure UTF-8 encoding
+        last_message = str(messages[-1]["content"])
         response = model_obj.generate_content(last_message)
         return response.text
     except Exception as e:
@@ -360,8 +367,15 @@ def call_together(messages, model, api_key):
             base_url="https://api.together.xyz/v1"
         )
         
-        full_messages = [{"role": "system", "content": st.session_state.system_prompt}]
-        full_messages.extend(messages)
+        # Prepare messages with system prompt - ensure UTF-8 encoding
+        full_messages = [{"role": "system", "content": str(st.session_state.system_prompt)}]
+        
+        for msg in messages:
+            clean_msg = {
+                "role": str(msg["role"]),
+                "content": str(msg["content"])
+            }
+            full_messages.append(clean_msg)
         
         response = client.chat.completions.create(
             model=model,
