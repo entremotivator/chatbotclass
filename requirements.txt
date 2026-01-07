@@ -2,4 +2,4 @@ openai
 Anthropic
 google-generativeai>=0.3.2
 PyPDF2
-docx
+python-docx
